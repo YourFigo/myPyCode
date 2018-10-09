@@ -1,0 +1,111 @@
+1:
+打开Git bash
+$ ssh-keygen-t rsa-C "your_email@youremail.com"
+之后两次回车
+输出如下：
+Generating public/private rsa key pair.
+Enter file in which to save the key (/c/Users/Administrator/.ssh/id_rsa):       
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /c/Users/Administrator/.ssh/id_rsa.
+Your public key has been saved in /c/Users/Administrator/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:NMe8giiRNaLs6ahGFdqWX9baxbjYqdDP4jnZ6N/1cAE 501385003@qq.com
+The key's randomart image is:
++---[RSA 2048]----+
+|  . o            |
+|.. = .   o       |
+|..= o   + *  E   |
+|...* . = = +  .  |
+| o+ o = S =    . |
+|o. . o + *      .|
+|o.    . B    o . |
+|..     *.+. . +  |
+|o     o++. .   . |
++----[SHA256]-----+
+
+2：
+在电脑中找到指定位置的文件.ssh/id_rsa.pub
+
+3：
+打开这个文件，复制秘钥
+
+4；
+登录github网站，在GitHub的Settings界面，找到SSH and GPG keys这个选项之后，点击网页中的一个New SSH keys按钮。
+输入Title和刚刚复制的Key
+
+5：
+回到Git bash，输入
+$ ssh -T git@github.com
+在输入yes后如果出现了：You've successfully authenticated, but GitHub does not provide shell access 。那就说明，已经成功连上了GitHub
+输出如下：
+The authenticity of host 'github.com (192.30.253.113)' can't be established.
+RSA key fingerprint is SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'github.com,192.30.253.113' (RSA) to the list of known hosts.
+Hi YourFigo! You've successfully authenticated, but GitHub does not provide shell access.
+6：
+接下来还需要简单的设置一些东西。
+$ git config --global user.name "your name"
+$ git config --global user.email "yourEmail@yourEmail.com"
+name最好和GitHub上边的一样，email是一定要是注册GitHub的那个邮箱地址。
+
+7:
+个人习惯将自己的文件储存在d盘之中,在git bash中输入
+$ cd /D
+注意盘名字一定要是大写。输入之后会出现/D说明定位成功。
+
+8:
+设置需要clone的github库，在Git bash中输入
+$ git clone https://github.com/YourFigo/FigoCode.git
+git clone后边的网址就是你创建库成功之后的网址。
+输出如下：
+Cloning into 'FigoCode'...
+warning: You appear to have cloned an empty repository.
+Checking connectivity... done.
+
+9:
+之后打开我所定位的D盘,可以看到，D盘中已经有以我的库名所创建的文件夹了。比如
+D:\FigoCode
+打开这个文件夹，然后在其中创建一个任意格式，任意名称的文件。比如
+test.txt
+
+10：
+重新定位git的位置，定位在D:\FigoCode，在Git bash中输入
+$ cd /D/FigoCode
+
+11:
+之后输入
+$ ls
+看到test.txt出现在bash中
+
+12:
+将test.txt克隆至github库中，输入
+git add test.txt
+之后输入然后输入
+git commit -m "testGit"
+引号内的内容可以随意改动，这个语句的意思是 给你刚刚上传的文件一个备注，方便查找记忆而已。
+输出如下：
+[master (root-commit) 7b90b7a] testGit
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+ create mode 100644 test.txt
+
+13：
+输入之后出现以上情况，然后在输入
+$ git push origin master
+会让你登录github
+输出如下：
+Username for 'https://github.com': YourFigo
+Password for 'https://YourFigo@github.com':
+Counting objects: 3, done.
+Writing objects: 100% (3/3), 204 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+remote:
+remote: Create a pull request for 'master' on GitHub by visiting:
+remote:      https://github.com/YourFigo/FigoCode/pull/new/master
+remote:
+To https://github.com/YourFigo/FigoCode.git
+ * [new branch]      master -> master
+ 
+14：
+出现以上提示，代表你成功了。打开你的GitHub网站，找到你创建的库，发现test.txt已经在库中。
