@@ -1,3 +1,4 @@
+# Copyright 2018 Figo Individual. All Rights Reserved.
 import sqlite3 as db
 import xlwt
 # 从SQLite文件中读取数据

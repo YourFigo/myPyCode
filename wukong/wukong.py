@@ -1,3 +1,4 @@
+# Copyright 2018 Figo Individual. All Rights Reserved.
 import sqlite3 #数据模块
 from bs4 import BeautifulSoup #解析网址模块
 import time #时间模块

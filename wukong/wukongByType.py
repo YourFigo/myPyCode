@@ -1,12 +1,16 @@
+# Copyright 2018 Figo Individual. All Rights Reserved.
 import sqlite3 #数据模块
 from bs4 import BeautifulSoup #解析网址模块
 import time #时间模块
 from selenium import webdriver #浏览器模块
 import xlwt
-import datetime
+from datetime import datetime
 
 firstUrl='https://www.wukong.com'
-driv = webdriver.Chrome() ##启动谷歌浏览器
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--disable-gpu')
+driv = webdriver.Chrome(chrome_options=chrome_options)
 driv.get(firstUrl) #在谷歌浏览器中打开网址
 
 urlDict = {}
@@ -115,9 +119,9 @@ for li in soup.find_all('div', class_="question-v3"):
     else:  # 如果不满足以上条件，直接跳出循环，停止爬虫
         break
 
-nowTime = (datetime.datetime.now()).strftime('%Y_%m_%d_%H_%M_%S')
-fileName = 'wukong' + keyword + '_' + nowTime + '.xls'
-workbook.save("C:/Users/Administrator/Desktop/" + fileName)
+nowTime = (datetime.now()).strftime('%Y_%m_%d_%H_%M_%S')
+fileName = 'wukong' + '_' + keyword + '_' + datetime.now().strftime('%Y_%m_%d_%H_%M_%S') + '.xls'
+workbook.save("D:/xxx/" + fileName)
 print("抓完咯")
 print("关闭浏览器")
 driv.quit()

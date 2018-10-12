@@ -2,12 +2,14 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
-from datetime import datetime,timedelta
-import xlwt
+from datetime import datetime, timedelta
 import re
+import my_mysql
 import commAPI
 
 startTime = datetime.now()
+
+
 # 创建一个模拟滚动条滚动到页面底部函数
 def scroll(driv):
     driv.execute_script("""   
@@ -34,41 +36,41 @@ def scroll(driv):
     })();   
     """)
 
+
 print("请输入滚动次数，输入完成后按Enter键开始：")
 scrollNum = int(input())
 webUrl = "https://www.toutiao.com/"
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--disable-gpu')
-browser = webdriver.Chrome(chrome_options = chrome_options)
+browser = webdriver.Chrome(chrome_options=chrome_options)
 browser.get(webUrl)
 time.sleep(3)
 
 print("开始模拟鼠标拉到文章底部")
-b=0
-c=0
-while b < scrollNum: #设置循环，可替换这里值来选择你要滚动的次数
-    scroll(browser) #滚动一次
+b = 0
+c = 0
+while b < scrollNum:  # 设置循环，可替换这里值来选择你要滚动的次数
+    scroll(browser)  # 滚动一次
     b = b + 1
     if (b % 10 == 0) or (b == 1):
         print('正在拉动第 {} 次...'.format(b))
     if c < 10:
         c = c + 1
-    time.sleep(c) #休息c秒的时间
+    time.sleep(c)  # 休息c秒的时间
 
-# 创建excel
-workbook = xlwt.Workbook(encoding='utf-8')
-worksheet1 = workbook.add_sheet("今日头条")
-title = ['序号','标题','详情网址','新闻来源','评论数','发布日期']
-for i in range(6):
-    worksheet1.write(0, i, title[i])
+# 只取字符串中的数字
+patt1 = r"\d+\.?\d*"
+patt1 = re.compile(patt1)
+# 排除字符串中的字母、数字、符号
+patt2 = "[A-Za-z0-9\!\%\[\]\,\。]"
 
-#开始解析
-soup = BeautifulSoup(browser.page_source,'lxml')
+# 开始解析
+soup = BeautifulSoup(browser.page_source, 'lxml')
 i = 0
 # article_item_click 可排除广告信息，但里面混有 没有评论 和 没有专题的文章
-for liOut in soup.find_all('div',ga_event="article_item_click"):
-    li = liOut.find('div',class_="single-mode-rbox-inner")
+for liOut in soup.find_all('div', ga_event="article_item_click"):
+    li = liOut.find('div', class_="single-mode-rbox-inner")
     if li != None:
         # 排除没有专题 和 没有评论 的信息
         tag = li.find('a', ga_event="article_tag_click")
@@ -82,14 +84,10 @@ for liOut in soup.find_all('div',ga_event="article_item_click"):
             # 从标题div 取相关内容
             NewsTitle = NewsDiv.find('a', class_="link").text
             NewsUrl = 'www.toutiao.com' + NewsDiv.a['href']
+            NewsID = re.search(patt1, NewsDiv.a['href']).group(0)
 
             # 从相关信息div 取相关内容
             # NewsTag = NewsInfoDiv.find('a', ga_event="article_tag_click").text
-            # 只取字符串中的数字
-            patt1 = r"\d+\.?\d*"
-            patt1 = re.compile(patt1)
-            # 排除字符串中的字母、数字、符号
-            patt2 = "[A-Za-z0-9\!\%\[\]\,\。]"
             NewsSource = NewsInfoDiv.find('a', ga_event="article_name_click").text.replace("⋅", "").replace(" ","").replace(u"\xa0", "")
             NewsCommentNum = NewsInfoDiv.find('a', ga_event="article_comment_click").text.replace("⋅", "").replace(" ","")
             # commentNum = int(re.findall(patt1, NewsCommentNum))
@@ -109,7 +107,6 @@ for liOut in soup.find_all('div',ga_event="article_item_click"):
                 NewsDate = (datetime.now() + timedelta(days=-timeNum)).strftime('%Y%m%d')
             else:
                 NewsDate = datetime.now().strftime('%Y%m%d')
-            one = (None, NewsTitle, NewsUrl, NewsSource, commentNum, NewsDate)
 
             print("第 {} 个 :".format(i))
             print("标题 ：", NewsTitle)
@@ -119,16 +116,11 @@ for liOut in soup.find_all('div',ga_event="article_item_click"):
             print("日期 ：", NewsDate)
             print('-------------------------------------------')
 
-            for j in range(6):
-                if j == 0:
-                    worksheet1.write(i, j, i)
-                else:
-                    worksheet1.write(i, j, one[j])
+            one = (NewsID,NewsTitle, NewsUrl, NewsSource, commentNum, NewsDate)
+            my_mysql.insertTable('tb_toutiao', one)
 
 endTime = datetime.now()
 timeDuration = (endTime - startTime).seconds
-worksheet1.write(0, 7, "耗时: {} 秒".format(timeDuration))
-workbook.save("D:/xxx" + datetime.now().strftime('%Y_%m_%d_%H_%M_%S') + ".xls")
 print("抓完咯")
 print("关闭浏览器")
 print('耗时 {} 秒'.format(timeDuration))

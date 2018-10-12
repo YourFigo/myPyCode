@@ -1,24 +1,17 @@
 # Copyright 2018 Figo Individual. All Rights Reserved.
+# Copyright 2018 Figo Individual. All Rights Reserved.
 import sqlite3 #数据模块
 from bs4 import BeautifulSoup #解析网址模块
 import time #时间模块
-from datetime import datetime
 from selenium import webdriver #浏览器模块
 import xlwt
 
-print("请输入关键词，按Enter开始爬虫")
 word=input() #手动输入关键词，如果你有固定的关键词可以替换成‘word='keyword'’
 urls='https://www.wukong.com/search/?keyword={}'.format(word) #关键词对应的网址
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument('--headless')
-chrome_options.add_argument('--disable-gpu')
-driv = webdriver.Chrome(chrome_options=chrome_options)
+driv = webdriver.Chrome() ##启动谷歌浏览器
 driv.get(urls) #在谷歌浏览器中打开网址
-driv.set_page_load_timeout(30) #设定时间，然后捕获timeout异常
-
-#创建一个模拟滚动条滚动到页面底部函数
-def scroll(driv):  
-    driv.execute_script("""   
+# driv.set_page_load_timeout(30) #设定时间，然后捕获timeout异常
+js="""  
     (function () {   
         var y = document.body.scrollTop;   
         var step = 100;   
@@ -36,11 +29,13 @@ def scroll(driv):
                 document.title += "scroll-done";   
             }   
         }   
-      
-      
         setTimeout(f, 1000);   
     })();   
-    """)
+    """
+driv.execute_script(js)
+#创建一个模拟滚动条滚动到页面底部函数
+def scroll(driv):  
+    driv.execute_script()
 print("开始模拟鼠标拉到文章底部")
 b=0
 c=0
@@ -102,7 +97,7 @@ for li in  soup.find_all('div',class_="question-v3"):
     else: #如果不满足以上条件，直接跳出循环，停止爬虫
         break
         
-workbook.save("D:/xxx" + datetime.now().strftime('%Y_%m_%d_%H_%M_%S') + ".xls")
+workbook.save("C:/Users/Administrator/Desktop/wukong.xls")
 print("抓完咯")
 print("关闭浏览器")
 driv.quit()
