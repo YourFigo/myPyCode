@@ -1,0 +1,1055 @@
+'日报更新模块
+Sub getDate()
+    
+    Dim nowDate As String
+    nowDate = Format(Date, "yyyymmdd")
+    Sheet1.Cells(1, 17) = nowDate
+    
+    Max = 6
+    For i = 1 To Max
+        nowDate_Before = Format(Date - i, "yyyymmdd")
+        Sheet1.Cells(1 + i, 17) = nowDate_Before
+'        Debug.Print i
+'        Debug.Print nowDate_Before
+    Next
+    
+End Sub
+
+Sub createRevenue()
+On Error GoTo MyErr
+    yOrN = 0
+    
+    x1 = Sheet1.Cells(1, 18)
+    x2 = Sheet1.Cells(2, 18)
+
+    date_1 = Format(Date - x1 + 1, "yyyymmdd")
+    date_2 = Format(Date - x2 + 1, "yyyymmdd")
+'    Debug.Print date_1
+'    Debug.Print date_2
+    
+    Dim wbTemplet, stRevenue
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stRevenue = wbTemplet.Sheets("日报")
+    
+    stRevenue.Cells(6, 5) = date_1
+    stRevenue.Cells(7, 5) = date_2
+    
+    yOrN = 1
+    MsgBox "日报更新成功"
+    wbTemplet.Save
+    wbTemplet.Close
+
+    
+MyErr:
+    If yOrN = 0 Then
+        msg = " 错误 " & Err.Number & " ： " & Err.Description
+        MsgBox msg
+    End If
+End Sub
+
+'将数据复制到模板sheet
+Sub copySheets()
+    Dim nowDate As String
+    nowDate = Format(Date, "yyyy_mm_dd")
+    
+    Dim array_sheet(12) As String
+    
+    'wbB 为python处理好的汇总excel wbTemplet为日报模板excel
+    Dim wbB, wbTemplet
+    Dim stInfo, stTool, stSmaato, stMobfox, stMopub_native, stMKT, stAOL, stTappx, stCMCM
+    Dim stB_Smaato, stB_Mobfox, stB_Mopub_native, stB_MKT, stB_AOL, stB_Tappx, stB_CMCM
+    
+    '设置日报模板的各项数据
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    
+    '设置爬取数据汇总的各项数据
+    Set wbB = Workbooks.Open("D:\360security\data\" & nowDate & "_data_total.xls")
+    
+    For a = 1 To wbB.Worksheets.Count
+        If wbB.Worksheets(a).Name = "Smaato" Then
+            Set stSmaato = wbTemplet.Sheets("smaato")
+            Set stB_Smaato = wbB.Sheets("Smaato")
+            stSmaato.Range("a:n").ClearContents
+            stB_Smaato.Range("B:M").copy stSmaato.Range("B:M")
+            '处理Smaato的公式列
+            Dim i%
+            i = 3
+            Do While stSmaato.Cells(i, 2) <> ""
+                stSmaato.Cells(i, 1) = Application.VLookup(stSmaato.Cells(i, 2), stInfo.Range("C:D"), 2, False)
+                i = i + 1
+            Loop
+            array_sheet(0) = "Smaato"
+        End If
+        
+        If wbB.Worksheets(a).Name = "Mobfox" Then
+            Set stMobfox = wbTemplet.Sheets("mobfox")
+            Set stB_Mobfox = wbB.Sheets("Mobfox")
+            stMobfox.Range("a:n").ClearContents
+            stB_Mobfox.Range("C:K").copy stMobfox.Range("C:K")
+            '处理Mobfox的公式列
+            Dim j%
+            j = 2
+            Do While stMobfox.Cells(j, 3) <> ""
+                stMobfox.Cells(j, 1) = Application.VLookup(stMobfox.Cells(j, 3), stInfo.Range("C:D"), 2, False)
+                'LEFT(RIGHT(C11,7),6)
+                stMobfox.Cells(j, 2) = Left(Right(stMobfox.Cells(j, 3), 7), 6)
+                j = j + 1
+            Loop
+            array_sheet(1) = "Mobfox"
+        End If
+        
+        If wbB.Worksheets(a).Name = "Mopub_native" Then
+            Set stMopub_native = wbTemplet.Sheets("Mopub_native")
+            Set stB_Mopub_native = wbB.Sheets("Mopub_native")
+            stMopub_native.Range("a:n").ClearContents
+            stB_Mopub_native.Range("C:J").copy stMopub_native.Range("C:J")
+            '处理Mopub_native的公式列
+            Dim k%
+            k = 3
+            Do While stMopub_native.Cells(k, 3) <> ""
+                stMopub_native.Cells(k, 2) = Application.VLookup(stMopub_native.Cells(k, 3), stInfo.Range("C:D"), 2, False)
+                k = k + 1
+            Loop
+            array_sheet(2) = "Mopub_native"
+        End If
+        
+        If wbB.Worksheets(a).Name = "MKT" Then
+            Set stMKT = wbTemplet.Sheets("MKT")
+            Set stB_MKT = wbB.Sheets("MKT")
+            stMKT.Range("a:n").ClearContents
+            stB_MKT.Range("C:J").copy stMKT.Range("C:J")
+            '处理MKT的公式列
+            Dim l%
+            l = 3
+            Do While stMKT.Cells(l, 3) <> ""
+                stMKT.Cells(l, 2) = Application.VLookup(stMKT.Cells(l, 3), stInfo.Range("C:D"), 2, False)
+                stMKT.Cells(l, 1) = Application.VLookup(stMKT.Cells(l, 3), stTool.Range("H:I"), 2, False)
+                l = l + 1
+            Loop
+            array_sheet(3) = "MKT"
+        End If
+        
+        If wbB.Worksheets(a).Name = "AOL" Then
+            Set stAOL = wbTemplet.Sheets("AOL")
+            Set stB_AOL = wbB.Sheets("AOL")
+            stAOL.Range("a:n").ClearContents
+            stB_AOL.Range("B:K").copy stAOL.Range("B:K")
+            '处理AOL的公式列
+            Dim m%
+            m = 5
+            Do While stAOL.Cells(m, 2) <> ""
+                stAOL.Cells(m, 1) = Application.VLookup(stAOL.Cells(m, 2), stInfo.Range("C:D"), 2, False)
+                m = m + 1
+            Loop
+            array_sheet(4) = "AOL"
+        End If
+        
+        If wbB.Worksheets(a).Name = "Tappx" Then
+            Set stTappx = wbTemplet.Sheets("tappx")
+            Set stB_Tappx = wbB.Sheets("Tappx")
+            stTappx.Range("a:n").ClearContents
+            stB_Tappx.Range("C:M").copy stTappx.Range("C:M")
+            '处理Tappx的公式列
+            Dim n%
+            n = 3
+            Do While stTappx.Cells(n, 3) <> ""
+                stTappx.Cells(n, 2) = stTappx.Cells(n, 3) & "_" & stTappx.Cells(n, 4)
+                stTappx.Cells(n, 1) = Application.VLookup(stTappx.Cells(n, 2), stInfo.Range("C:D"), 2, False)
+                n = n + 1
+            Loop
+            array_sheet(5) = "Tappx"
+        End If
+        
+        If wbB.Worksheets(a).Name = "cmcm" Then
+            Set stCMCM = wbTemplet.Sheets("CM")
+            Set stB_CMCM = wbB.Sheets("cmcm")
+            stCMCM.Range("a:n").ClearContents
+            stB_CMCM.Range("C:N").copy stCMCM.Range("C:N")
+            '处理CMCM的公式列
+            Dim p%
+            p = 2
+            Do While stCMCM.Cells(p, 4) <> ""
+                stCMCM.Cells(p, 2) = Application.VLookup(stCMCM.Cells(p, 4), stInfo.Range("C:D"), 2, False)
+                p = p + 1
+            Loop
+            array_sheet(6) = "cmcm"
+        End If
+        
+        If wbB.Worksheets(a).Name = "Solo" Then
+            Set stSolo = wbTemplet.Sheets("Solo")
+            Set stB_Solo = wbB.Sheets("Solo")
+            stSolo.Range("a:n").ClearContents
+            stB_Solo.Range("B:L").copy stSolo.Range("B:L")
+            '处理Solo的公式列
+            Dim q%
+            q = 3
+            Do While stSolo.Cells(q, 3) <> ""
+                stSolo.Cells(q, 1) = Application.VLookup(stSolo.Cells(q, 3), stInfo.Range("C:D"), 2, False)
+                q = q + 1
+            Loop
+            array_sheet(7) = "Solo"
+        End If
+        
+        If wbB.Worksheets(a).Name = "Adview" Then
+            Set stAdview = wbTemplet.Sheets("adview")
+            Set stB_Adview = wbB.Sheets("Adview")
+            stAdview.Range("a:n").ClearContents
+            stB_Adview.Range("C:M").copy stAdview.Range("C:M")
+            '处理Adview的公式列
+            Dim r%
+            r = 3
+            Do While stAdview.Cells(r, 4) <> ""
+                stAdview.Cells(r, 2) = stAdview.Cells(r, 4) & "_" & stAdview.Cells(r, 6)
+                stAdview.Cells(r, 1) = Application.VLookup(stAdview.Cells(r, 2), stInfo.Range("C:D"), 2, False)
+                r = r + 1
+            Loop
+            array_sheet(8) = "Adview"
+        End If
+        
+        If wbB.Worksheets(a).Name = "Pubnative" Then
+            Set stPubnative = wbTemplet.Sheets("Pubnative")
+            Set stB_Pubnative = wbB.Sheets("Pubnative")
+            stPubnative.Range("a:n").ClearContents
+            stB_Pubnative.Range("C:M").copy stPubnative.Range("C:M")
+            '处理Pubnative的公式列
+            Dim s%
+            s = 3
+            Do While stPubnative.Cells(s, 4) <> ""
+                stPubnative.Cells(s, 2) = Application.VLookup(stPubnative.Cells(s, 4), stInfo.Range("C:D"), 2, False)
+                s = s + 1
+            Loop
+            array_sheet(9) = "Pubnative"
+        End If
+        
+        If wbB.Worksheets(a).Name = "NewCM" Then
+            Set stNewCM = wbTemplet.Sheets("New CM")
+            Set stB_NewCM = wbB.Sheets("NewCM")
+            stNewCM.Range("a:n").ClearContents
+            stB_NewCM.Range("C:I").copy stNewCM.Range("C:I")
+            '处理NewCM的公式列
+            Dim t%
+            t = 2
+            Do While stNewCM.Cells(t, 4) <> ""
+                stNewCM.Cells(t, 2) = Application.VLookup(stNewCM.Cells(t, 4), stInfo.Range("C:D"), 2, False)
+                t = t + 1
+            Loop
+            array_sheet(10) = "NewCM"
+        End If
+        
+        If wbB.Worksheets(a).Name = "Openx" Then
+            Set stOpenX = wbTemplet.Sheets("OpenX")
+            Set stB_Openx = wbB.Sheets("Openx")
+            stOpenX.Range("a:n").ClearContents
+            stB_Openx.Range("D:J").copy stOpenX.Range("D:J")
+            '处理Openx的公式列
+            Dim u%
+            u = 4
+            Do While stOpenX.Cells(u, 4) <> ""
+                stOpenX.Cells(u, 3) = stOpenX.Cells(u, 4) & "_" & stOpenX.Cells(u, 6)
+                stOpenX.Cells(u, 2) = Application.VLookup(stOpenX.Cells(u, 3), stInfo.Range("C:D"), 2, False)
+                u = u + 1
+            Loop
+            array_sheet(11) = "Openx"
+        End If
+    Next
+    
+    For i = 0 To 12
+        Debug.Print array_sheet(i)
+    Next
+    
+    wbB.Save
+    wbTemplet.Save
+    wbB.Close
+    wbTemplet.Close
+        
+End Sub
+
+'将数据写入每日汇总
+Sub writeSmaato()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stSmaato, stMobfox, stMopub_native, stMKT, stAOL, stTappx, stCMCM
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stSmaato = wbTemplet.Sheets("smaato")
+    Set stMobfox = wbTemplet.Sheets("mobfox")
+    Set stMopub_native = wbTemplet.Sheets("Mopub_native")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stAOL = wbTemplet.Sheets("AOL")
+    Set stTappx = wbTemplet.Sheets("tappx")
+    Set stCMCM = wbTemplet.Sheets("CM")
+    
+    stSmaato_Row_Max = stSmaato.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeSmaato row_Insert:" & row_Insert
+    Dim i!
+    'smaato的数据从第3行开始
+    For i = 3 To stSmaato_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stSmaato.Cells(i, 2)
+        stTotal.Cells(row_Insert, 4) = stSmaato.Cells(i, 1)
+        stTotal.Cells(row_Insert, 5) = "smaato"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stSmaato.Cells(i, 2), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stSmaato.Cells(i, 2), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stSmaato.Cells(i, 2), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 10) = stSmaato.Cells(i, 6)
+        stTotal.Cells(row_Insert, 11) = stSmaato.Cells(i, 9)
+        stTotal.Cells(row_Insert, 12) = stSmaato.Cells(i, 4)
+        stTotal.Cells(row_Insert, 13) = stSmaato.Cells(i, 8)
+        '14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 10) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 15) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 16) = stTotal.Cells(row_Insert, 10) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 10) = 0 Then
+                stTotal.Cells(row_Insert, 15) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 16) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeAOL()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stSmaato, stMobfox, stMopub_native, stMKT, stAOL, stTappx, stCMCM
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stAOL = wbTemplet.Sheets("AOL")
+
+    
+    stAOL_Row_Max = stAOL.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeAOL row_Insert:" & row_Insert
+    Dim i!
+    'AOL的数据从第5行开始
+    For i = 5 To stAOL_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stAOL.Cells(i, 2)
+        stTotal.Cells(row_Insert, 4) = stAOL.Cells(i, 1)
+        stTotal.Cells(row_Insert, 5) = "aol"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stAOL.Cells(i, 2), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stAOL.Cells(i, 2), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stAOL.Cells(i, 2), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 10) = stAOL.Cells(i, 3)
+        stTotal.Cells(row_Insert, 11) = stAOL.Cells(i, 4)
+        stTotal.Cells(row_Insert, 12) = stAOL.Cells(i, 9)
+        stTotal.Cells(row_Insert, 13) = stAOL.Cells(i, 6)
+        '14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 10) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 15) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 16) = stTotal.Cells(row_Insert, 10) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 10) = 0 Then
+                stTotal.Cells(row_Insert, 15) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 16) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeMobfox()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stSmaato, stMobfox, stMopub_native, stMKT, stAOL, stTappx, stCMCM
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stMobfox = wbTemplet.Sheets("mobfox")
+
+    
+    stMobfox_Row_Max = stMobfox.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeMobfox row_Insert:" & row_Insert
+    Dim i!
+    'mobfox的数据从第2行开始
+    For i = 2 To stMobfox_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stMobfox.Cells(i, 3)
+        stTotal.Cells(row_Insert, 4) = stMobfox.Cells(i, 1)
+        stTotal.Cells(row_Insert, 5) = "mobfox"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stMobfox.Cells(i, 3), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stMobfox.Cells(i, 3), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stMobfox.Cells(i, 3), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 10) = stMobfox.Cells(i, 4)
+        stTotal.Cells(row_Insert, 11) = stMobfox.Cells(i, 6)
+        stTotal.Cells(row_Insert, 12) = stMobfox.Cells(i, 10)
+        stTotal.Cells(row_Insert, 13) = stMobfox.Cells(i, 9)
+        '14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 10) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 15) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 16) = stTotal.Cells(row_Insert, 10) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 10) = 0 Then
+                stTotal.Cells(row_Insert, 15) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 16) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeTappx()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stSmaato, stMobfox, stMopub_native, stMKT, stAOL, stTappx, stCMCM
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stTappx = wbTemplet.Sheets("tappx")
+
+    
+    stTappx_Row_Max = stTappx.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeTappx row_Insert:" & row_Insert
+    Dim i!
+    'Tappx的数据从第2行开始
+    For i = 3 To stTappx_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stTappx.Cells(i, 3)
+        stTotal.Cells(row_Insert, 4) = stTappx.Cells(i, 1)
+        stTotal.Cells(row_Insert, 5) = "Tappx"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stTappx.Cells(i, 2), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stTappx.Cells(i, 2), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stTappx.Cells(i, 2), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 10) = stTappx.Cells(i, 5)
+        stTotal.Cells(row_Insert, 11) = stTappx.Cells(i, 7)
+        stTotal.Cells(row_Insert, 12) = stTappx.Cells(i, 13)
+        stTotal.Cells(row_Insert, 13) = stTappx.Cells(i, 11)
+        '14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 10) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 15) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 16) = stTotal.Cells(row_Insert, 10) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 10) = 0 Then
+                stTotal.Cells(row_Insert, 15) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 16) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeCMCM()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stSmaato, stMobfox, stMopub_native, stMKT, stAOL, stTappx, stCMCM
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stCMCM = wbTemplet.Sheets("CM")
+
+    
+    stCMCM_Row_Max = stCMCM.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeCMCM row_Insert:" & row_Insert
+    Dim i!
+    'CMCM的数据从第2行开始
+    For i = 2 To stCMCM_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stCMCM.Cells(i, 4)
+        stTotal.Cells(row_Insert, 4) = stCMCM.Cells(i, 2)
+        stTotal.Cells(row_Insert, 5) = "CM"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stCMCM.Cells(i, 4), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stCMCM.Cells(i, 4), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stCMCM.Cells(i, 4), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 10) = stCMCM.Cells(i, 8)
+        stTotal.Cells(row_Insert, 11) = stCMCM.Cells(i, 7)
+        stTotal.Cells(row_Insert, 12) = stCMCM.Cells(i, 14)
+        stTotal.Cells(row_Insert, 13) = stCMCM.Cells(i, 9)
+        '14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 10) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 15) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 16) = stTotal.Cells(row_Insert, 10) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 10) = 0 Then
+                stTotal.Cells(row_Insert, 15) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 16) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+
+Sub writeMopub_native()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stSmaato, stMobfox, stMopub_native, stMKT, stAOL, stTappx, stCMCM
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stMopub_native = wbTemplet.Sheets("Mopub_native")
+
+    
+    stMopub_native_Row_Max = stMopub_native.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeMopub_native row_Insert:" & row_Insert
+    Dim i!
+    'Mopub_native的数据从第3行开始
+    For i = 3 To stMopub_native_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stMopub_native.Cells(i, 3)
+        stTotal.Cells(row_Insert, 4) = stMopub_native.Cells(i, 2)
+        stTotal.Cells(row_Insert, 5) = "mopub_native"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stMopub_native.Cells(i, 3), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stMopub_native.Cells(i, 3), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stMopub_native.Cells(i, 3), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = stMopub_native.Cells(i, 6)
+        stTotal.Cells(row_Insert, 10) = stMopub_native.Cells(i, 4)
+        stTotal.Cells(row_Insert, 11) = stMopub_native.Cells(i, 5)
+        stTotal.Cells(row_Insert, 12) = stMopub_native.Cells(i, 7)
+        
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeMKT()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stSmaato, stMobfox, stMopub_native, stMKT, stAOL, stTappx, stCMCM
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+
+    
+    stMKT_Row_Max = stMKT.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeMKT row_Insert:" & row_Insert
+    Dim i!
+
+    For i = 3 To stMKT_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stMKT.Cells(i, 3)
+        stTotal.Cells(row_Insert, 4) = stMKT.Cells(i, 2)
+        stTotal.Cells(row_Insert, 5) = "MKT"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stMKT.Cells(i, 3), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stMKT.Cells(i, 3), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stMKT.Cells(i, 3), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = stMKT.Cells(i, 6)
+        stTotal.Cells(row_Insert, 10) = stMKT.Cells(i, 4)
+        stTotal.Cells(row_Insert, 11) = stMKT.Cells(i, 5)
+        stTotal.Cells(row_Insert, 12) = stMKT.Cells(i, 7)
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeSolo()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stMKT, stSolo
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stSolo = wbTemplet.Sheets("Solo")
+
+    
+    stSolo_Row_Max = stSolo.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeSolo row_Insert:" & row_Insert
+    Dim i!
+    'Solo的数据从第2行开始,Solo最后一行为total不需要写入日报
+    For i = 3 To stSolo_Row_Max - 1
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stSolo.Cells(i, 3)
+        stTotal.Cells(row_Insert, 4) = stSolo.Cells(i, 1)
+        stTotal.Cells(row_Insert, 5) = "Solo"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stSolo.Cells(i, 3), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stSolo.Cells(i, 3), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stSolo.Cells(i, 3), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 10) = stSolo.Cells(i, 5)
+        stTotal.Cells(row_Insert, 11) = stSolo.Cells(i, 7)
+        stTotal.Cells(row_Insert, 12) = stSolo.Cells(i, 4)
+        '13 14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 10) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 13) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 15) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 16) = stTotal.Cells(row_Insert, 10) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 10) = 0 Then
+                stTotal.Cells(row_Insert, 15) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 13) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 16) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeOpenx()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stMKT, stOpenX
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stOpenX = wbTemplet.Sheets("OpenX")
+
+    
+    stOpenX_Row_Max = stOpenX.Range("C1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeOpenx row_Insert:" & row_Insert
+    Dim i!
+    'OpenX的数据从第4行开始,OpenX最后一行为total不需要写入日报
+    For i = 4 To stOpenX_Row_Max - 1
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stOpenX.Cells(i, 3)
+        stTotal.Cells(row_Insert, 4) = stOpenX.Cells(i, 2)
+        stTotal.Cells(row_Insert, 5) = "OpenX"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stOpenX.Cells(i, 3), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stOpenX.Cells(i, 3), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stOpenX.Cells(i, 3), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 10) = stOpenX.Cells(i, 7)
+        stTotal.Cells(row_Insert, 11) = stOpenX.Cells(i, 8)
+        stTotal.Cells(row_Insert, 12) = stOpenX.Cells(i, 10)
+        stTotal.Cells(row_Insert, 13) = stOpenX.Cells(i, 9)
+        '14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 10) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 15) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 16) = stTotal.Cells(row_Insert, 10) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 10) = 0 Then
+                stTotal.Cells(row_Insert, 15) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 16) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeAdview()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stMKT, stAdview
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stAdview = wbTemplet.Sheets("adview")
+
+    
+    stAdview_Row_Max = stAdview.Range("B1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeAdview row_Insert:" & row_Insert
+    Dim i!
+    'Adview的数据从第3行开始
+    For i = 3 To stAdview_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stAdview.Cells(i, 2)
+        stTotal.Cells(row_Insert, 4) = stAdview.Cells(i, 1)
+        stTotal.Cells(row_Insert, 5) = "adview"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stAdview.Cells(i, 2), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stAdview.Cells(i, 2), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stAdview.Cells(i, 2), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 11) = stAdview.Cells(i, 7)
+        stTotal.Cells(row_Insert, 12) = stAdview.Cells(i, 13)
+        
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writePubnative()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stMKT, stPubnative
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stPubnative = wbTemplet.Sheets("Pubnative")
+
+    
+    stPubnative_Row_Max = stPubnative.Range("D1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writePubnative row_Insert:" & row_Insert
+    Dim i!
+    'Pubnative的数据从第3行开始
+    For i = 3 To stPubnative_Row_Max
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stPubnative.Cells(i, 4)
+        stTotal.Cells(row_Insert, 4) = stPubnative.Cells(i, 2)
+        stTotal.Cells(row_Insert, 5) = "pubnative"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stPubnative.Cells(i, 4), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stPubnative.Cells(i, 4), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stPubnative.Cells(i, 4), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 10) = stPubnative.Cells(i, 7)
+        stTotal.Cells(row_Insert, 11) = stPubnative.Cells(i, 6)
+        stTotal.Cells(row_Insert, 12) = stPubnative.Cells(i, 5)
+        stTotal.Cells(row_Insert, 13) = stPubnative.Cells(i, 8) / 100
+        '14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 10) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 15) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 10)
+            stTotal.Cells(row_Insert, 16) = stTotal.Cells(row_Insert, 10) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 10) = 0 Then
+                stTotal.Cells(row_Insert, 15) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 16) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeNewCM()
+    Dim nowDate As String
+    nowDate = Format(Date - 1, "yyyymmdd")
+
+    Dim wbTemplet, stTotal, stInfo, stTool, stMKT, stNewCM
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    Set stInfo = wbTemplet.Sheets("广告位信息")
+    Set stTool = wbTemplet.Sheets("工具")
+    Set stMKT = wbTemplet.Sheets("MKT")
+    Set stNewCM = wbTemplet.Sheets("New CM")
+
+    
+    stNewCM_Row_Max = stNewCM.Range("D1048576").End(xlUp).Row
+    row_Insert = stTotal.Range("C1048576").End(xlUp).Row + 1
+    Debug.Print "writeNewCM row_Insert:" & row_Insert
+    Dim i!
+    'NewCM的数据从第2行开始
+    For i = 2 To stNewCM_Row_Max - 1
+        stTotal.Cells(row_Insert, 2) = nowDate
+        stTotal.Cells(row_Insert, 3) = stNewCM.Cells(i, 4)
+        stTotal.Cells(row_Insert, 4) = stNewCM.Cells(i, 2)
+        stTotal.Cells(row_Insert, 5) = "New CM"
+        stTotal.Cells(row_Insert, 6) = Application.VLookup(stNewCM.Cells(i, 4), stInfo.Range("C:H"), 4, False)
+        stTotal.Cells(row_Insert, 7) = Application.VLookup(stNewCM.Cells(i, 4), stInfo.Range("C:H"), 5, False)
+        stTotal.Cells(row_Insert, 8) = Application.VLookup(stNewCM.Cells(i, 4), stInfo.Range("C:H"), 6, False)
+        stTotal.Cells(row_Insert, 9) = Application.SumIfs(stMKT.Range("F:F"), stMKT.Range("A:A"), stTotal.Cells(row_Insert, 7), stMKT.Range("B:B"), stTotal.Cells(row_Insert, 4))
+        stTotal.Cells(row_Insert, 11) = stNewCM.Cells(i, 5)
+        stTotal.Cells(row_Insert, 12) = stNewCM.Cells(i, 9)
+        '13 14 15 16 17 18列需要除法运算，因此需要判断除数
+        If stTotal.Cells(row_Insert, 11) <> 0 And stTotal.Cells(row_Insert, 9) <> 0 Then
+            stTotal.Cells(row_Insert, 14) = stTotal.Cells(row_Insert, 12) * 1000 / stTotal.Cells(row_Insert, 11)
+            stTotal.Cells(row_Insert, 17) = stTotal.Cells(row_Insert, 11) / stTotal.Cells(row_Insert, 9)
+            stTotal.Cells(row_Insert, 18) = stTotal.Cells(row_Insert, 12) / stTotal.Cells(row_Insert, 9)
+        Else
+            If stTotal.Cells(row_Insert, 11) = 0 Then
+                stTotal.Cells(row_Insert, 14) = "#DIV/0!"
+            End If
+            If stTotal.Cells(row_Insert, 9) = 0 Then
+                stTotal.Cells(row_Insert, 17) = "#DIV/0!"
+                stTotal.Cells(row_Insert, 18) = "#DIV/0!"
+            End If
+        End If
+        row_Insert = row_Insert + 1
+    Next
+    
+    wbTemplet.Save
+    wbTemplet.Close
+End Sub
+Sub writeTotal()
+    Dim nowDate As String
+    nowDate = Format(Date, "yyyy_mm_dd")
+    Dim wbTemplet, stTotal
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stTotal = wbTemplet.Sheets("汇总")
+    
+    '先对汇总表进行清除
+    row_Max = stTotal.Range("C1048576").End(xlUp).Row
+    Debug.Print "writeTotal row_Max:" & row_Max
+    If row_Max > 2 Then
+        stTotal.Range("B3:S" & row_Max).ClearContents
+    End If
+    wbTemplet.Save
+    wbTemplet.Close
+    
+    Set wbB = Workbooks.Open("D:\360security\data\" & nowDate & "_data_total.xls")
+    '逐个处理每家广告
+    For a = 1 To wbB.Worksheets.Count
+        If wbB.Worksheets(a).Name = "Smaato" Then
+            writeSmaato
+        End If
+        
+        If wbB.Worksheets(a).Name = "Mobfox" Then
+            writeMobfox
+        End If
+        
+        If wbB.Worksheets(a).Name = "Mopub_native" Then
+            writeMopub_native
+        End If
+        
+        If wbB.Worksheets(a).Name = "MKT" Then
+            writeMKT
+        End If
+        
+        If wbB.Worksheets(a).Name = "AOL" Then
+            writeAOL
+        End If
+        
+        If wbB.Worksheets(a).Name = "Tappx" Then
+            writeTappx
+        End If
+        
+        If wbB.Worksheets(a).Name = "cmcm" Then
+            writeCMCM
+        End If
+        
+        If wbB.Worksheets(a).Name = "Solo" Then
+            writeSolo
+        End If
+        
+        If wbB.Worksheets(a).Name = "Adview" Then
+            writeAdview
+        End If
+        
+        If wbB.Worksheets(a).Name = "Pubnative" Then
+            writePubnative
+        End If
+        
+        If wbB.Worksheets(a).Name = "NewCM" Then
+            writeNewCM
+        End If
+        
+        If wbB.Worksheets(a).Name = "Openx" Then
+            writeOpenx
+        End If
+    Next
+    
+    wbB.Save
+    wbB.Close
+
+End Sub
+
+'将数据写入总汇总表递增
+Sub delete_Final_Total()
+    Dim YesterDate As String
+    YesterDate = Format(Date - 1, "yyyymmdd")
+    
+    Dim wbTemplet, stTotal, stFnlTotal
+    Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+    Set stFnlTotal = wbTemplet.Sheets("汇总2")
+    
+    row_end = stFnlTotal.Range("C1048576").End(xlUp).Row
+'    Debug.Print row_end
+    num = 0
+    For i = 2 To row_end
+        If stFnlTotal.Cells(i, 2) = YesterDate Then
+            deleteRow = i
+            stFnlTotal.Rows(i).ClearContents
+            num = num + 1
+        End If
+    Next i
+    Debug.Print "delete_Final_Total 删除:" & num & "条"
+    
+    wbTemplet.Save
+    wbTemplet.Close
+    
+End Sub
+Sub write_Final_Total()
+
+On Error GoTo MyErr
+    yOrN = 0
+
+Dim YesterDate As String
+YesterDate = Format(Date - 1, "yyyymmdd")
+
+Dim wbTemplet, stTotal, stFnlTotal
+Set wbTemplet = Workbooks.Open("D:\360security\data\日报-JS+tag模板.xlsx")
+Set stTotal = wbTemplet.Sheets("汇总")
+Set stFnlTotal = wbTemplet.Sheets("汇总2")
+
+stTotal_Row_Max = stTotal.Range("C1048576").End(xlUp).Row
+row_Insert = stFnlTotal.Range("C1048576").End(xlUp).Row + 1
+row_end = row_Insert + stTotal_Row_Max - 2
+
+'For i = 3 To stTotal_Row_Max
+'    For j = 2 To 17
+'        stFnlTotal.Cells(row_Insert, j) = stTotal.Cells(i, j)
+'    Next j
+'    row_Insert = row_Insert + 1
+'Next i
+'下面方法比上面方法要快的多
+
+stTotal.Range("B3:S" & stTotal_Row_Max).copy stFnlTotal.Range("B" & row_Insert & ":S" & row_end)
+num = stFnlTotal.Range("C1048576").End(xlUp).Row - (row_Insert - 1)
+Debug.Print "write_Final_Total 写入：" & num & "条"
+wbTemplet.Save
+wbTemplet.Close
+
+yOrN = 1
+
+MsgBox "写入成功，写入：" & num & "条"
+MyErr:
+    If yOrN = 1 Then
+        msg = "写入成功"
+    Else
+        msg = " 错误 " & Err.Number & " ： " & Err.Description
+    MsgBox msg
+    End If
+
+End Sub
+
+Sub Final_Total()
+    delete_Final_Total
+    write_Final_Total
+End Sub
+
+'总控制模块
+Sub run()
+    On Error GoTo MyErr
+    yOrN = 0
+    
+    getDate
+    copySheets
+    writeTotal
+'    Final_Total
+    
+    yOrN = 1
+    MsgBox "写入成功"
+MyErr:
+    If yOrN = 1 Then
+        msg = "写入成功"
+    Else
+        msg = " 错误 " & Err.Number & " ： " & Err.Description
+    MsgBox msg
+    End If
+End Sub
