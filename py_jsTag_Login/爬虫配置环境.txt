@@ -1,0 +1,9 @@
+python -m pip install --upgrade pip==9.0.3
+
+pip install bs4
+pip install selenium
+pip install xlwt
+pip install xlrd
+pip install lxml
+pip install xlutils
+pip install pandas
