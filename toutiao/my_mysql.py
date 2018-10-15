@@ -1,9 +1,8 @@
-# Copyright 2018 Figo Individual. All Rights Reserved.
 import mysql.connector as myConn
 import traceback
 
 config = {
-    'host': '127.0.0.1',
+    'host': 'xxx',
     'user': 'xxx',
     'password': 'xxx',
     'port': 3306,
@@ -11,7 +10,7 @@ config = {
     'charset': 'utf8'
 }
 
-def createTable(tb_name, autoUpNum, *args,priKeyNum=0):
+def createTable(tb_name, *args):
     '''
     :param tb_name: 需要创建的表格名
     :param autoUpNum: 主键在columns中的索引
@@ -68,6 +67,29 @@ def insertTable(tb_name,valuesTuple):
         cursor.close()
         conn.close()
 
+def insertWukong(tb_name,valuesTuple):
+    try:
+        conn = myConn.connect(**config)
+        cursor = conn.cursor()
+        # 这个地方 必须全为 %s，因为sql 语句 必须是 字符串，如果写 %d，报错：Not all parameters were used in the SQL statement
+        insertSql = 'replace into ' + tb_name + ' (NewsID,url,keyword,title,replyNum,collectNum,likeNum,commentNum) values (%s,%s,%s,%s,%s,%s,%s,%s)'
+        cursor.execute(insertSql, valuesTuple)
+        effectRow = cursor.rowcount
+        print("mysql插入完成，受影响行数：{}".format(effectRow))
+        # 删除重复，保留新记录
+        dltReptSql = 'delete from a using ' + tb_name + ' as a,' + tb_name + ' as b where a.num < b.num and a.NewsID = b.NewsID'
+        cursor.execute(dltReptSql)
+        effectRow = cursor.rowcount
+        print("mysql删除重复记录完成，受影响行数：{}".format(effectRow))
+        conn.commit()
+    except myConn.Error as e:
+        print("connect fails! {}".format(e))
+        print(traceback.format_exc())
+    finally:
+        cursor.close()
+        conn.close()
+
+
 def selectTable(sql):
     try:
         conn = myConn.connect(**config)
@@ -83,7 +105,7 @@ def selectTable(sql):
         cursor.close()
         conn.close()
 
-def run_Create():
+def run_Create_toutiao():
     tb_name = 'tb_toutiao'
     autoUpNum = 0
     priKeyNum = 1
@@ -91,7 +113,16 @@ def run_Create():
     colsType = ['INT AUTO_INCREMENT PRIMARY KEY', 'VARCHAR(20)', 'VARCHAR(50)', 'VARCHAR(50)', 'VARCHAR(10)',
                 'VARCHAR(5)', 'DATE']
     args = [columns, colsType]
-    createTable(tb_name, autoUpNum, *args)
+    createTable(tb_name, *args)
+
+def run_Create_wukong():
+    tb_name = 'tb_wukong'
+    autoUpNum = 0
+    priKeyNum = 1
+    columns = ['num', 'NewsID', 'url','keyword', 'title', 'replyNum', 'collectNum','likeNum','commentNum']
+    colsType = ['INT AUTO_INCREMENT PRIMARY KEY', 'VARCHAR(20)', 'VARCHAR(50)', 'VARCHAR(10)', 'VARCHAR(100)','INT','INT','INT','INT']
+    args = [columns, colsType]
+    createTable(tb_name, *args)
 
 def run_Select():
     tb_name = 'tb_toutiao'
@@ -105,4 +136,5 @@ def run_Select():
     print("查询结束，共 {} 条记录".format(NewsNum[0][0]))
 
 if __name__ == '__main__':
+    # run_Create_wukong()
     run_Select()

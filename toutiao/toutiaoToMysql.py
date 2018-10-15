@@ -1,4 +1,3 @@
-# Copyright 2018 Figo Individual. All Rights Reserved.
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
@@ -8,7 +7,7 @@ import my_mysql
 import commAPI
 
 startTime = datetime.now()
-
+print("开始时间：",startTime)
 
 # 创建一个模拟滚动条滚动到页面底部函数
 def scroll(driv):
@@ -64,7 +63,7 @@ patt1 = r"\d+\.?\d*"
 patt1 = re.compile(patt1)
 # 排除字符串中的字母、数字、符号
 patt2 = "[A-Za-z0-9\!\%\[\]\,\。]"
-
+print('-------------------------------------------------------------------')
 # 开始解析
 soup = BeautifulSoup(browser.page_source, 'lxml')
 i = 0
@@ -114,12 +113,12 @@ for liOut in soup.find_all('div', ga_event="article_item_click"):
             print("新闻来源 ：", NewsSource)
             print("评论数 ：", commentNum)
             print("日期 ：", NewsDate)
-            print('-------------------------------------------')
 
             one = (NewsID,NewsTitle, NewsUrl, NewsSource, commentNum, NewsDate)
             my_mysql.insertTable('tb_toutiao', one)
-
+            print('-------------------------------------------------------------------')
 endTime = datetime.now()
+print("结束时间：",endTime)
 timeDuration = (endTime - startTime).seconds
 print("抓完咯")
 print("关闭浏览器")
