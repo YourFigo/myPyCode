@@ -1,6 +1,6 @@
-1:
+﻿1:
 打开Git bash
-$ ssh-keygen-t rsa-C "your_email@youremail.com"
+$ ssh-keygen -t rsa -C "your_email@youremail.com"
 之后两次回车
 输出如下：
 Generating public/private rsa key pair.
