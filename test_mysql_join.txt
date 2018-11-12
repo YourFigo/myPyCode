@@ -1,0 +1,26 @@
+CREATE TABLE t_blog(
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        title VARCHAR(50),
+        typeId INT)
+				;	
+CREATE TABLE t_type(
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(20)
+    );
+SELECT * FROM t_blog;
+SELECT * FROM t_type;
+
+# 内连接，数学角度就是求两个表的交集。比如：inner join、where
+select * from t_blog,t_type where t_blog.typeId=t_type.id;
+select * from t_blog inner join t_type on t_blog.typeId=t_type.id;
+
+# 左连接LEFT JOIN的含义就是求两个表的交集外加左表剩下的数据
+select * from t_blog left join t_type on t_blog.typeId=t_type.id;
+
+# 同理右连接RIGHT JOIN就是求两个表的交集外加右表剩下的数据。
+select * from t_blog right join t_type on t_blog.typeId=t_type.id;
+
+# 外连接，就是求两个集合的并集。从笛卡尔积中挑出ON子句条件成立的记录，然后加上左表中剩余的记录，最后加上右表中剩余的记录。MySQL不支持OUTER JOIN，但是我们可以对左连接和右连接的结果做UNION操作来实现。
+select * from t_blog left join t_type on t_blog.typeId=t_type.id
+union
+select * from t_blog right join t_type on t_blog.typeId=t_type.id;
